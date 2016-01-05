@@ -1,13 +1,19 @@
 import React from "react";
-import {Router, Route} from "react-router";
+import {Router, Route, IndexRoute} from 'react-router';
 
-import Main from "./Main";
+import App from './App';
+import About from './About';
+import Main from './Main';
+import Test from './Test';
+import LandingPage from './LandingPage';
 
-/**
- * The React Router 1.0 routes for both the server and the client.
- */
 module.exports = (
 	<Router>
-		<Route path="/" component={Main} />
+		<Route path="/" component={App}>
+      <IndexRoute component={LandingPage} />
+      <Route path="main" component={Main} />
+      <Route path="about" component={About} />
+    </Route>
+		<Route path="/test" component={Test} />
 	</Router>
 );

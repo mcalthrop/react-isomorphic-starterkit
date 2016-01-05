@@ -8,12 +8,26 @@ const fetchStargazers  = (page, per_page = 100) => {
 	return githubApi.browse(
 		["repos", "RickWong/react-isomorphic-starterkit", "stargazers"],
 		{ query: { page, per_page } }
-	).then(json => {
-		return (json || []).map(({id, login}) => ({id, login}));
+	).then((json = []) => {
+		return json.map(({id, login}) => ({id, login}));
 	}).catch(error => {
 		throw error;
 	});
 };
+
+const repositoryUrl = 'https://github.com/RickWong/react-isomorphic-starterkit';
+const avatarSize    = 32;
+const githubUrl = (login) => `http://github.com/${login}`;
+const avatarUrl = (id) => `https://avatars.githubusercontent.com/u/${id}?v=3&s=${avatarSize}`;
+
+
+const GithubAvatar = ({uid, username}) =>
+  <img className="avatar" src={avatarUrl(uid)} alt={username} />;
+
+const GithubProfileLink = ({username, children}) =>
+  <a href={githubUrl(username)} title={username} target="_blank">
+    {children}
+  </a>;
 
 /**
  * Main React application entry-point for both the server and client.
@@ -47,8 +61,10 @@ class Main extends React.Component {
 	 * Load more stargazers.
 	 */
 	loadMoreStargazersOnClient () {
+    console.log('loading more star gazers on client');
 		const {additionalStargazers = [], transmit} = this.props;
 		let {nextPage, pagesToFetch} = transmit.variables;
+    console.log(transmit.variables);
 
 		if (--pagesToFetch <= 0) {
 			return;
@@ -67,11 +83,7 @@ class Main extends React.Component {
 	 * Runs on server and client.
 	 */
 	render () {
-		const repositoryUrl = "https://github.com/RickWong/react-isomorphic-starterkit";
-		const avatarSize    = 32;
-		const avatarUrl     = (id) => `https://avatars.githubusercontent.com/u/${id}?v=3&s=${avatarSize}`;
-
-		/**
+    /**
 		 * This is a Transmit fragment.
 		 */
 		let {stargazers, additionalStargazers} = this.props;
@@ -79,6 +91,8 @@ class Main extends React.Component {
 		if (additionalStargazers) {
 			stargazers = stargazers.concat(additionalStargazers);
 		}
+
+    let githuburl = 'http://github.com';
 
 		return (
 			<InlineCss stylesheet={Main.css(avatarSize)} namespace="Main">
@@ -111,11 +125,14 @@ class Main extends React.Component {
 					<a href={repositoryUrl} title="star = join us!">
 						<img className="avatar" src={avatarUrl(0)} alt="you?" />
 					</a>
-					{stargazers && stargazers.map(user =>
-						<a key={user.id} href={"https://github.com/"+user.login} title={user.login} target="_blank">
-							<img className="avatar" src={avatarUrl(user.id)} alt={user.login} />
-						</a>
+
+					{stargazers.map(user =>
+            <GithubProfileLink key={user.id} username={user.login}>
+              <GithubAvatar uid={user.id} username={user.login} />
+            </GithubProfileLink>
 					)}
+
+
 					<a href={repositoryUrl} title="you here? star us!">
 						<img className="avatar" src={avatarUrl(0)} alt="you?" />
 					</a>
@@ -156,6 +173,7 @@ class Main extends React.Component {
 /**
  * Use Transmit to query and return GitHub stargazers as a Promise.
  */
+
 export default Transmit.createContainer(Main, {
 	initialVariables: {
 		nextPage:       2,
